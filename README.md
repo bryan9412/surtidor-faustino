@@ -3,7 +3,7 @@
 Aplicación Android **sin conexión** para el expendedor de combustible del Hospital Provincial Clínico Quirúrgico Docente «Faustino Pérez Hernández».
 Lee el **código QR** de cada cupón de combustible y dice, sin internet, si es **válido**, si **ya se canjeó**, si está **fuera de semana** o si es **falso**.
 
-No lleva el permiso de Internet: no puede salir a la red. Solo pide la **cámara** (para leer el QR).
+Los cupones y los canjes **nunca salen por internet**: la parte web de la aplicación no tiene acceso a la red (su política de seguridad lo impide) y todo funciona sin conexión. Permisos: la **cámara** (para leer el QR) e **Internet**, que solo usa la parte nativa para preguntar si hay una versión nueva y descargarla.
 
 ## Cómo se usa
 
@@ -13,6 +13,10 @@ No lleva el permiso de Internet: no puede salir a la red. Solo pide la **cámara
 4. Al terminar: **Canjes → Enviar a la Dirección** (comparte el archivo de canjes). La Dirección lo carga en el sistema y se cierra el ciclo.
 
 Si la cámara falla: **Leer el QR de una foto** o **Teclear folio y código** (van impresos en el cupón).
+
+**Cargar el archivo desde WhatsApp:** al tocar *Cargar cupones*, el selector se abre en la carpeta donde WhatsApp guarda los documentos. También se puede tocar el archivo en WhatsApp y elegir *Surtidor Faustino* (o «Compartir» → *Surtidor Faustino*): se carga directamente.
+
+**Actualizaciones:** al abrir la aplicación con internet, avisa si hay una versión nueva; *Ajustes → Buscar actualización* lo comprueba a mano. *Actualizar* descarga la APK nueva y abre el instalador de Android; los cupones y canjes se conservan. Esto necesita que el repositorio sea **público** (con un repositorio privado la comprobación no puede consultar GitHub y se omite sin molestar).
 
 ## Seguridad (en corto)
 

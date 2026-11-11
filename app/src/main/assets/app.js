@@ -3,7 +3,7 @@
   'use strict';
   var S = window.Surtidor;
   var CLAVE = 'sgh-surtidor-estado';
-  var VERSION = '1.0';
+  var puente = window.AndroidSurtidor || null; // solo existe dentro de la aplicación del teléfono
   var estado = leer();
   var vista = 'inicio';
   var flujo = null;       // el cupón que se está viendo { folio, codigo }
@@ -93,6 +93,13 @@
   async function cargarLote(archivo) {
     var texto;
     try { texto = await leerArchivo(archivo); } catch (e) { await confirmar('No se pudo leer', 'No se pudo abrir el archivo.', 'Aceptar', null, true); return; }
+    await cargarLoteTexto(texto);
+  }
+
+  /** Un archivo que llega desde fuera (se tocó en WhatsApp o se compartió con la aplicación): se carga igual que si se hubiera elegido. */
+  window.recibirArchivo = function (nombre, texto) { ir('inicio'); return cargarLoteTexto(texto); };
+
+  async function cargarLoteTexto(texto) {
     var r = S.verificarLote(texto, window.nacl);
     if (!r.ok) { await confirmar('Archivo no válido', r.error, 'Aceptar', null, true); return; }
     if (estado.clavePublica && estado.clavePublica !== r.clave) {
@@ -251,7 +258,48 @@
     $('a-nombre').value = estado.expendedor || '';
     $('a-huella').textContent = estado.huella || 'Todavía no has cargado ningún archivo de cupones.';
     $('a-hora').textContent = new Date().toLocaleString('es');
-    $('version').textContent = 'Surtidor Faustino ' + VERSION + ' · funciona sin conexión';
+    $('version').textContent = 'Surtidor Faustino ' + (puente && puente.version ? puente.version() : '') + ' · los cupones funcionan sin conexión';
+    $('b-actualizar').hidden = !(puente && puente.buscarActualizacion);
+  }
+
+  /* ---------- actualizaciones (solo dentro de la aplicación del teléfono) ---------- */
+  var ultimaActualizacion = null;
+  var busquedaManual = false;
+
+  function megas(b) { return b ? (b / 1048576).toFixed(1).replace('.', ',') + ' MB' : ''; }
+
+  function pintarActualizacion() {
+    var caja = $('actualizacion'); var r = ultimaActualizacion;
+    if (r && r.estado === 'nueva') {
+      caja.hidden = false;
+      caja.innerHTML = '<span>⬆ Hay una <b>versión nueva</b> (' + esc(r.version) + ').</span><button id="b-instalar">Actualizar</button>';
+      $('b-instalar').onclick = function () { actualizar(); };
+    } else { caja.hidden = true; }
+  }
+
+  async function actualizar() {
+    var r = ultimaActualizacion; if (!r || r.estado !== 'nueva') return;
+    var ok = await confirmar('Actualizar la aplicación', 'Se descargará la versión nueva (' + megas(r.tamano) + ') y el teléfono te pedirá instalarla.\n\nTus cupones y canjes se conservan.', 'Descargar', 'Ahora no');
+    if (ok && puente) puente.instalarActualizacion(r.url);
+  }
+
+  /** La aplicación nativa responde aquí cuando termina de preguntar a GitHub. */
+  window.resultadoActualizacion = function (r) {
+    ultimaActualizacion = r;
+    pintarActualizacion();
+    if (!busquedaManual) return; // al abrir la aplicación solo se avisa si hay versión nueva; el resto no molesta
+    busquedaManual = false;
+    var t = { nueva: 'Hay una versión nueva (' + r.version + '). Toca «Actualizar» en la pantalla de inicio.', al_dia: 'Ya tienes la última versión.',
+      sin_conexion: 'No hay conexión a internet ahora. Inténtalo cuando tengas datos o wifi.', no_disponible: 'No se pudo comprobar: el servidor de actualizaciones no está disponible.',
+      error: 'No se pudo comprobar si hay una versión nueva.' }[r.estado] || '';
+    $('r-actualizacion').textContent = t;
+  };
+
+  function buscarActualizacion(manual) {
+    if (!puente || !puente.buscarActualizacion) return;
+    busquedaManual = !!manual;
+    if (manual) $('r-actualizacion').textContent = 'Buscando…';
+    puente.buscarActualizacion();
   }
 
   /* ---------- eventos ---------- */
@@ -283,6 +331,7 @@
     try { S.deshacerCanje(estado, f); guardar(); pintarCanjes(); } catch (x) { avisar(x.message); }
   };
   $('b-ajustes').onclick = function () { ir('ajustes'); };
+  $('b-actualizar').onclick = function () { buscarActualizacion(true); };
   $('b-volver-ajustes').onclick = function () { estado.expendedor = $('a-nombre').value.trim(); guardar(); ir('inicio'); };
   $('a-nombre').onchange = function () { estado.expendedor = this.value.trim(); guardar(); };
   $('b-borrar').onclick = async function () {
@@ -293,4 +342,5 @@
   };
 
   ir('inicio');
+  setTimeout(function () { buscarActualizacion(false); }, 1500); // al abrir, si hay conexión, se mira en silencio si hay una versión nueva
 })();

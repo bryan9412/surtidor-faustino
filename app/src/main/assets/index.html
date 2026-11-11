@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0D8691">
+<!-- La parte web no tiene acceso a la red (connect-src none): los cupones y los canjes nunca salen por internet. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Surtidor Faustino</title>
 <link rel="stylesheet" href="estilo.css">
 </head>
@@ -17,6 +19,7 @@
   <!-- Inicio -->
   <section id="v-inicio" class="vista">
     <div class="estado" id="estado"></div>
+    <div class="actualizar" id="actualizacion" hidden></div>
     <button class="gran pri" id="b-escanear"><span class="ic">📷</span><span>Escanear cupón</span></button>
     <button class="gran sec" id="b-teclear"><span class="ic">⌨️</span><span>Teclear folio y código</span></button>
     <button class="gran sec" id="b-foto"><span class="ic">🖼️</span><span>Leer el QR de una foto</span></button>
@@ -69,6 +72,8 @@
     <label>Tu nombre (va en el archivo de canjes)<input id="a-nombre" type="text" autocomplete="off" placeholder="Nombre y apellidos"></label>
     <div class="caja"><b>Llave del hospital</b><span id="a-huella">Todavía no has cargado ningún archivo de cupones.</span></div>
     <div class="caja"><b>Hora del teléfono</b><span id="a-hora"></span></div>
+    <button class="gran sec" id="b-actualizar">⬆ Buscar actualización</button>
+    <p class="ayuda" id="r-actualizacion"></p>
     <button class="gran sec" id="b-volver-ajustes">Volver</button>
     <button class="enlace peligro" id="b-borrar">Borrar todos los datos de la aplicación</button>
     <p class="version" id="version"></p>

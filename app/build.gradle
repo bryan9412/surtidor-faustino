@@ -10,7 +10,7 @@ android {
         targetSdk 34
         // El número de versión sube con cada compilación para que el teléfono acepte actualizar encima sin borrar los datos.
         versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
-        versionName '1.0'
+        versionName '1.1'
     }
 
     // La llave de firma vive en secretos de GitHub (no está en el repositorio). Con la misma llave, cada versión nueva se instala encima de la anterior conservando los canjes.
