@@ -9,7 +9,7 @@ android {
         minSdk 24
         targetSdk 34
         // El número de versión sube con cada compilación para que el teléfono acepte actualizar encima sin borrar los datos.
-        versionCode (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+        versionCode Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
         versionName '1.0'
     }
 
