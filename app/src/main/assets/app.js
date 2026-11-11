@@ -12,6 +12,15 @@
 
   function $(id) { return document.getElementById(id); }
 
+  /* ---------- errores visibles: nada falla en silencio ---------- */
+  var ultimoError = '';
+  function mostrarError(e) {
+    ultimoError = String((e && e.message) || e || 'error desconocido');
+    if ($('modal').hidden) confirmar('Algo falló', ultimoError + '\n\n(Se puede ver también en Ajustes → Diagnóstico.)', 'Aceptar', null, true);
+  }
+  window.addEventListener('error', function (ev) { mostrarError(ev.message); });
+  window.addEventListener('unhandledrejection', function (ev) { mostrarError(ev.reason); });
+
   /* ---------- almacenamiento ---------- */
   function leer() {
     try { var e = JSON.parse(localStorage.getItem(CLAVE)); if (e && e.version === 1) return e; } catch (x) { /* empieza vacío */ }
@@ -100,6 +109,11 @@
   window.recibirArchivo = function (nombre, texto) { ir('inicio'); return cargarLoteTexto(texto); };
 
   async function cargarLoteTexto(texto) {
+    try { await cargarLoteTextoInterno(texto); } catch (e) { mostrarError(e); }
+  }
+
+  async function cargarLoteTextoInterno(texto) {
+    avisar('Leyendo el archivo… (' + String(texto || '').length + ' caracteres)');
     var r = S.verificarLote(texto, window.nacl);
     if (!r.ok) { await confirmar('Archivo no válido', r.error, 'Aceptar', null, true); return; }
     if (estado.clavePublica && estado.clavePublica !== r.clave) {
@@ -116,8 +130,9 @@
     }
     var res = S.integrarLote(estado, r.datos, new Date());
     guardar();
-    pintarInicio();
-    avisar('Archivo cargado: ' + res.total + ' cupón(es), ' + res.nuevos + ' nuevo(s).');
+    ir('inicio');
+    await confirmar('Cupones cargados', res.total + ' cupón(es) del archivo ' + r.datos.lote + '\nSemana del ' + corta(r.datos.semana_inicio) + ' al ' + corta(r.datos.semana_fin) +
+      '\n(' + res.nuevos + ' nuevo(s))\n\nYa puedes escanear los cupones.', 'Aceptar', null, true);
   }
 
   /* ---------- resultado de un cupón ---------- */
@@ -125,9 +140,15 @@
     flujo = { folio: folio, codigo: codigo };
     var ev = S.evaluar(estado, folio, codigo, new Date());
     var c = ev.cupon;
+    var cargados = Object.keys(estado.cupones).length;
     var cabeza = { valido: ['verde', '✅', 'Cupón válido', 'Puedes entregar el combustible.'], canjeado: ['rojo', '⛔', 'Ya se canjeó', 'No lo entregues otra vez.'],
       fuera_de_semana: ['ambar', '⌛', 'Fuera de semana', ''], codigo_no_coincide: ['rojo', '🚫', 'Código no coincide', 'Puede ser falso o estar alterado. No entregues combustible.'],
       no_esta: ['rojo', '🚫', 'No está en tus cupones', 'Este cupón no está en el archivo que cargaste: puede ser falso o de otra semana. Pide a la Dirección un archivo nuevo.'] }[ev.resultado];
+    if (ev.resultado === 'no_esta') {
+      cabeza = cargados === 0
+        ? ['rojo', '📂', 'Todavía no has cargado los cupones', 'Esta aplicación no tiene ningún cupón guardado. Toca «Cargar cupones» y elige el archivo que te mandó la Dirección.']
+        : ['rojo', '🚫', 'No está en tus cupones', 'Tienes ' + cargados + ' cupón(es) cargados, pero este no es uno de ellos (' + folio + '): puede ser de otra semana o ser falso. Si es de esta semana, pide a la Dirección un archivo nuevo.'];
+    }
     if (ev.resultado === 'canjeado') cabeza[3] = 'Se canjeó el ' + cuando(c.canje.fecha) + '. No lo entregues otra vez.';
     if (ev.resultado === 'canjeado' && recien) cabeza = ['verde', '✔', 'Canje guardado', 'Quedó registrado: este cupón ya no vale otra vez. Al terminar, envía el archivo de canjes a la Dirección.'];
     if (ev.resultado === 'fuera_de_semana') cabeza[3] = 'Este cupón vale del ' + corta(c.desde) + ' al ' + corta(c.hasta) + (ev.antes ? ' y todavía no es su semana.' : ' y ya venció.');
@@ -260,6 +281,10 @@
     $('a-hora').textContent = new Date().toLocaleString('es');
     $('version').textContent = 'Surtidor Faustino ' + (puente && puente.version ? puente.version() : '') + ' · los cupones funcionan sin conexión';
     $('b-actualizar').hidden = !(puente && puente.buscarActualizacion);
+    var n = Object.keys(estado.cupones).length;
+    $('a-diag').innerHTML = 'Contexto seguro: <b>' + (window.isSecureContext ? 'sí' : 'NO') + '</b> · Cifrado: <b>' + (window.crypto && window.crypto.subtle ? 'sí' : 'NO') + '</b> · Cámara: <b>' +
+      (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? 'sí' : 'NO') + '</b><br>Cupones cargados: <b>' + n + '</b> · Llave fijada: <b>' + (estado.clavePublica ? 'sí' : 'no') +
+      '</b><br>Último error: ' + esc(ultimoError || 'ninguno');
   }
 
   /* ---------- actualizaciones (solo dentro de la aplicación del teléfono) ---------- */
@@ -314,8 +339,12 @@
   };
   $('b-foto').onclick = function () { $('f-foto').value = ''; $('f-foto').click(); };
   $('f-foto').onchange = function () { if (this.files && this.files[0]) leerFoto(this.files[0]); };
-  $('b-cargar').onclick = function () { $('f-lote').value = ''; $('f-lote').click(); };
-  $('f-lote').onchange = function () { if (this.files && this.files[0]) cargarLote(this.files[0]); };
+  $('b-cargar').onclick = function () {
+    // Dentro de la aplicación, el teléfono lee el archivo y se lo entrega a la página (más fiable que el selector interno de una página web).
+    if (puente && puente.elegirArchivoDeCupones) { puente.elegirArchivoDeCupones(); return; }
+    $('f-lote').value = ''; $('f-lote').click();
+  };
+  $('f-lote').onchange = function () { if (this.files && this.files[0]) cargarLote(this.files[0]).catch(mostrarError); };
   $('b-entregado').onclick = entregar;
   $('b-siguiente').onclick = function () { flujo = null; ir('inicio'); };
   $('b-canjes').onclick = function () { ir('canjes'); };

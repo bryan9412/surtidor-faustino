@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
     private static final int PEDIR_CAMARA = 1;
     private static final int ELEGIR_ARCHIVO = 2;
     private static final int GUARDAR_ARCHIVO = 3;
+    private static final int ELEGIR_CUPONES = 4;
     private static final String URL_VERSION = "https://api.github.com/repos/bryan9412/surtidor-faustino/releases/tags/apk";
 
     private WebView web;
@@ -178,6 +179,13 @@ public class MainActivity extends Activity {
         if (Intent.ACTION_VIEW.equals(accion)) uri = i.getData();
         else if (Intent.ACTION_SEND.equals(accion)) uri = (Uri) i.getParcelableExtra(Intent.EXTRA_STREAM);
         if (uri == null) return;
+        leerArchivoPendiente(uri);
+        i.setAction(Intent.ACTION_MAIN); // para no volver a leerlo al girar la pantalla
+        i.setData(null);
+    }
+
+    /** Lee el archivo (texto) para entregárselo a la página. Si no se puede, lo dice con un aviso. */
+    private void leerArchivoPendiente(Uri uri) {
         try (InputStream in = getContentResolver().openInputStream(uri)) {
             ByteArrayOutputStream salida = new ByteArrayOutputStream();
             byte[] buf = new byte[8192];
@@ -189,10 +197,21 @@ public class MainActivity extends Activity {
             archivoPendienteTexto = salida.toString("UTF-8");
             archivoPendienteNombre = nombreDe(uri);
         } catch (Exception e) {
-            Toast.makeText(this, "No se pudo abrir el archivo.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No se pudo abrir el archivo: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-        i.setAction(Intent.ACTION_MAIN); // para no volver a leerlo al girar la pantalla
-        i.setData(null);
+    }
+
+    /** Abre el selector de documentos (en la carpeta de WhatsApp) para elegir el archivo de cupones; el teléfono lo lee y se lo entrega a la página. */
+    private void elegirArchivoDeCupones() {
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        if (Build.VERSION.SDK_INT >= 26) i.putExtra(DocumentsContract.EXTRA_INITIAL_URI, carpetaDeWhatsApp());
+        try {
+            startActivityForResult(i, ELEGIR_CUPONES);
+        } catch (Exception e) {
+            Toast.makeText(this, "No se pudo abrir el selector de archivos.", Toast.LENGTH_LONG).show();
+        }
     }
 
     private String nombreDe(Uri uri) {
@@ -232,6 +251,11 @@ public class MainActivity extends Activity {
         if (codigo == ELEGIR_ARCHIVO && selectorArchivos != null) {
             selectorArchivos.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultado, datos));
             selectorArchivos = null;
+        } else if (codigo == ELEGIR_CUPONES) {
+            if (resultado == RESULT_OK && datos != null && datos.getData() != null) {
+                leerArchivoPendiente(datos.getData());
+                entregarArchivoPendiente();
+            }
         } else if (codigo == GUARDAR_ARCHIVO) {
             if (resultado == RESULT_OK && datos != null && datos.getData() != null && guardarContenido != null) {
                 try (OutputStream salida = getContentResolver().openOutputStream(datos.getData())) {
@@ -407,6 +431,16 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String version() {
             return nombreVersion() + " (" + versionActual() + ")";
+        }
+
+        @JavascriptInterface
+        public void elegirArchivoDeCupones() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.elegirArchivoDeCupones();
+                }
+            });
         }
 
         @JavascriptInterface
