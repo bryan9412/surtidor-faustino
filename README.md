@@ -8,13 +8,13 @@ Los cupones y los canjes **nunca salen por internet**: la parte web de la aplica
 ## Cómo se usa
 
 1. La Dirección descarga en el Sistema de Gobierno Hospitalario (Combustible → **Expendedor**) el **archivo de cupones activos** de la semana y se lo manda al expendedor (WhatsApp, Bluetooth, USB).
-2. En la aplicación: **Cargar cupones** → elige el archivo. La primera vez muestra la **huella de la llave** del hospital: se confirma con la Dirección y el teléfono queda *emparejado* (solo aceptará archivos firmados con esa llave).
+2. En la aplicación: **Recibir cupones** → elige el archivo. La primera vez muestra la **huella de la llave** del hospital: se confirma con la Dirección y el teléfono queda *emparejado* (solo aceptará archivos firmados con esa llave).
 3. **Escanear cupón** → la aplicación dice si vale. Si el combustible se entrega: **Ya entregué el combustible**. Los litros son siempre los del cupón.
-4. Al terminar: **Canjes → Enviar a la Dirección** (comparte el archivo de canjes). La Dirección lo carga en el sistema y se cierra el ciclo.
+4. Al terminar: **Enviar canjes → Enviar a la Dirección** (comparte el archivo de canjes). La Dirección lo carga en el sistema y se cierra el ciclo.
 
-Si la cámara falla: **Leer el QR de una foto** o **Teclear folio y código** (van impresos en el cupón).
+Si la cámara falla: **Teclear el cupón** (el folio y el código van impresos en el cupón).
 
-**Cargar el archivo desde WhatsApp:** al tocar *Cargar cupones*, el selector se abre en la carpeta donde WhatsApp guarda los documentos. También se puede tocar el archivo en WhatsApp y elegir *Surtidor Faustino* (o «Compartir» → *Surtidor Faustino*): se carga directamente.
+**Cargar el archivo desde WhatsApp:** al tocar *Recibir cupones*, el selector se abre en la carpeta donde WhatsApp guarda los documentos. También se puede tocar el archivo en WhatsApp y elegir *Surtidor Faustino* (o «Compartir» → *Surtidor Faustino*): se carga directamente.
 
 **Actualizaciones:** al abrir la aplicación con internet, avisa si hay una versión nueva; *Ajustes → Buscar actualización* lo comprueba a mano. *Actualizar* descarga la APK nueva y abre el instalador de Android; los cupones y canjes se conservan. Esto necesita que el repositorio sea **público** (con un repositorio privado la comprobación no puede consultar GitHub y se omite sin molestar).
 

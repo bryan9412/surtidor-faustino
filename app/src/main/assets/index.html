@@ -11,25 +11,21 @@
 </head>
 <body>
 <header class="cab">
-  <img src="logo.png" alt="" class="logo">
-  <div class="tit"><h1>Surtidor Faustino</h1><p id="hospital">Validación de cupones de combustible</p></div>
+  <img src="logo-blanco.png" alt="Hospital Faustino Pérez" class="logo">
+  <button class="engranaje" id="b-ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
 </header>
+<div class="subcab"><b>Surtidor Faustino</b><span id="hospital">Validación de cupones de combustible</span></div>
 
 <main>
   <!-- Inicio -->
   <section id="v-inicio" class="vista">
     <div class="estado" id="estado"></div>
     <div class="actualizar" id="actualizacion" hidden></div>
-    <button class="gran pri" id="b-escanear"><span class="ic">📷</span><span>Escanear cupón</span></button>
-    <button class="gran sec" id="b-teclear"><span class="ic">⌨️</span><span>Teclear folio y código</span></button>
-    <button class="gran sec" id="b-foto"><span class="ic">🖼️</span><span>Leer el QR de una foto</span></button>
-    <input type="file" id="f-foto" accept="image/*" hidden>
-    <div class="fila2">
-      <button class="medio" id="b-canjes"><span id="n-canjes">Canjes</span></button>
-      <button class="medio" id="b-cargar">Cargar cupones</button>
-    </div>
+    <button class="baldosa grande" id="b-escanear"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><rect x="8" y="8" width="3" height="3" rx=".5"/><rect x="13" y="8" width="3" height="3" rx=".5"/><rect x="8" y="13" width="3" height="3" rx=".5"/><path d="M13 13h3v3h-3z"/></svg></span><span class="tx"><b>Escanear cupón</b><small>Apunta la cámara al código QR</small></span></button>
+    <button class="baldosa" id="b-teclear"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="tx"><b>Teclear el cupón</b><small>Folio y código a mano</small></span></button>
+    <button class="baldosa" id="b-canjes"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3 14.5 21l-4.5-7-7-4.5z"/></svg></span><span class="tx"><b>Enviar canjes</b><small>Mandar a la Dirección lo que ya entregaste</small></span><span class="insignia" id="n-canjes" hidden></span></button>
+    <button class="baldosa" id="b-cargar"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span><span class="tx"><b>Recibir cupones</b><small>Cargar el archivo que te mandó la Dirección</small></span></button>
     <input type="file" id="f-lote" accept=".json,application/json,text/plain,*/*" hidden>
-    <button class="enlace" id="b-ajustes">Ajustes</button>
     <p class="version" id="v-version"></p>
   </section>
 
@@ -58,10 +54,10 @@
 
   <!-- Canjes -->
   <section id="v-canjes" class="vista" hidden>
-    <h2>Canjes</h2>
+    <h2>Enviar canjes</h2>
     <p class="ayuda" id="resumen-canjes"></p>
-    <button class="gran pri" id="b-compartir">📤 Enviar a la Dirección</button>
-    <button class="gran sec" id="b-guardar">💾 Guardar el archivo en el teléfono</button>
+    <button class="baldosa grande" id="b-compartir"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="M21 3 14.5 21l-4.5-7-7-4.5z"/></svg></span><span class="tx"><b>Enviar a la Dirección</b><small>WhatsApp, Bluetooth…</small></span></button>
+    <button class="baldosa" id="b-guardar"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></span><span class="tx"><b>Guardar en el teléfono</b><small>Para enviarlo después</small></span></button>
     <div id="lista-canjes"></div>
     <button class="enlace" id="b-reenviar">Preparar de nuevo todos los canjes</button>
     <button class="gran sec" id="b-volver-canjes">Volver</button>
@@ -74,7 +70,7 @@
     <div class="caja"><b>Llave del hospital</b><span id="a-huella">Todavía no has cargado ningún archivo de cupones.</span></div>
     <div class="caja"><b>Hora del teléfono</b><span id="a-hora"></span></div>
     <div class="caja"><b>Diagnóstico</b><span id="a-diag"></span></div>
-    <button class="gran sec" id="b-actualizar">⬆ Buscar actualización</button>
+    <button class="baldosa" id="b-actualizar"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m0 0-5 5m5-5 5 5"/></svg></span><span class="tx"><b>Buscar actualización</b><small>Necesita internet</small></span></button>
     <p class="ayuda" id="r-actualizacion"></p>
     <button class="gran sec" id="b-volver-ajustes">Volver</button>
     <button class="enlace peligro" id="b-borrar">Borrar todos los datos de la aplicación</button>

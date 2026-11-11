@@ -85,7 +85,7 @@
     var porEnviar = S.pendientes(estado).length;
     var h = '';
     if (!cupones.length) {
-      h = 'Todavía no tienes cupones cargados.<br>Pídele a la Dirección el <b>archivo de cupones</b> y toca «Cargar cupones».';
+      h = 'Todavía no tienes cupones cargados.<br>Pídele a la Dirección el <b>archivo de cupones</b> y toca «Recibir cupones».';
     } else {
       h = '<b>' + vigentes.length + '</b> cupón(es) vigentes hoy · <b>' + sinCanjear.length + '</b> sin canjear · <b>' + porEnviar + '</b> canje(s) por enviar';
       if (ultimo) h += '<br>Archivo <b>' + esc(lotes[lotes.length - 1]) + '</b> · semana del ' + corta(ultimo.desde) + ' al ' + corta(ultimo.hasta);
@@ -93,7 +93,7 @@
       if (ultimo && ultimo.generado && new Date().getTime() < new Date(ultimo.generado).getTime() - 86400000) h += '<span class="alerta">La fecha del teléfono parece estar atrasada. Corrígela en Ajustes del teléfono.</span>';
     }
     $('estado').innerHTML = h;
-    $('n-canjes').textContent = porEnviar ? 'Canjes (' + porEnviar + ' por enviar)' : 'Canjes';
+    $('n-canjes').textContent = porEnviar; $('n-canjes').hidden = !porEnviar;
   }
 
   /* ---------- cargar el archivo de cupones ---------- */
@@ -151,7 +151,7 @@
       no_esta: ['rojo', '🚫', 'No está en tus cupones', 'Este cupón no está en el archivo que cargaste: puede ser falso o de otra semana. Pide a la Dirección un archivo nuevo.'] }[ev.resultado];
     if (ev.resultado === 'no_esta') {
       cabeza = cargados === 0
-        ? ['rojo', '📂', 'Todavía no has cargado los cupones', 'Esta aplicación no tiene ningún cupón guardado. Toca «Cargar cupones» y elige el archivo que te mandó la Dirección.']
+        ? ['rojo', '📂', 'Todavía no has cargado los cupones', 'Esta aplicación no tiene ningún cupón guardado. Toca «Recibir cupones» y elige el archivo que te mandó la Dirección.']
         : ['rojo', '🚫', 'No está en tus cupones', 'Tienes ' + cargados + ' cupón(es) cargados, pero este no es uno de ellos (' + folio + '): puede ser de otra semana o ser falso. Si es de esta semana, pide a la Dirección un archivo nuevo.'];
     }
     if (ev.resultado === 'canjeado') cabeza[3] = 'Se canjeó el ' + cuando(c.canje.fecha) + '. No lo entregues otra vez.';
@@ -196,7 +196,7 @@
     try {
       camara.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
     } catch (e) {
-      $('ayuda-escaner').textContent = 'No se pudo abrir la cámara. Usa «Leer el QR de una foto» o teclea el folio y el código.';
+      $('ayuda-escaner').textContent = 'No se pudo abrir la cámara. Usa «Teclear el cupón»: el folio y el código van impresos en el cupón.';
       return;
     }
     var video = $('video'); video.srcObject = camara.stream;
@@ -218,26 +218,6 @@
       }
       setTimeout(tick, 110);
     })();
-  }
-
-  /** Lee el QR de una foto de la galería (por si la cámara en vivo falla o el cupón está arrugado). */
-  function leerFoto(archivo) {
-    var url = URL.createObjectURL(archivo); var im = new Image();
-    im.onload = function () {
-      var encontrado = null;
-      [1600, 1000, 2400, 700].forEach(function (max) {
-        if (encontrado) return;
-        var esc2 = Math.min(1, max / Math.max(im.width, im.height)); var w = Math.round(im.width * esc2), h = Math.round(im.height * esc2);
-        var l = document.createElement('canvas'); l.width = w; l.height = h; var x = l.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, w, h);
-        var q = window.jsQR(x.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'attemptBoth' });
-        if (q) encontrado = S.leerQr(q.data);
-      });
-      URL.revokeObjectURL(url);
-      if (encontrado) mostrarResultado(encontrado.folio, encontrado.codigo);
-      else avisar('No se encontró un QR de cupón en la foto. Prueba con otra foto o teclea el folio y el código.');
-    };
-    im.onerror = function () { avisar('No se pudo abrir la foto.'); };
-    im.src = url;
   }
 
   /* ---------- canjes ---------- */
@@ -322,7 +302,12 @@
     var t = { nueva: 'Hay una versión nueva (' + r.version + '). Toca «Actualizar» en la pantalla de inicio.', al_dia: 'Ya tienes la última versión.',
       sin_conexion: 'No hay conexión a internet ahora. Inténtalo cuando tengas datos o wifi.', no_disponible: 'No se pudo comprobar: el servidor de actualizaciones no está disponible.',
       error: 'No se pudo comprobar si hay una versión nueva.' }[r.estado] || '';
-    $('r-actualizacion').textContent = t;
+    var caja = $('r-actualizacion');
+    caja.textContent = t;
+    if (r.estado === 'nueva') {
+      var b = document.createElement('button'); b.className = 'gran pri'; b.style.marginTop = '10px'; b.textContent = 'Actualizar ahora (' + megas(r.tamano) + ')';
+      b.onclick = function () { actualizar(); }; caja.appendChild(document.createElement('br')); caja.appendChild(b);
+    }
   };
 
   function buscarActualizacion(manual) {
@@ -342,8 +327,6 @@
     if (!folio || !codigo) { avisar('Escribe el folio y el código del cupón.'); return; }
     mostrarResultado(folio, codigo);
   };
-  $('b-foto').onclick = function () { $('f-foto').value = ''; $('f-foto').click(); };
-  $('f-foto').onchange = function () { if (this.files && this.files[0]) leerFoto(this.files[0]); };
   $('b-cargar').onclick = function () {
     // Dentro de la aplicación, el teléfono lee el archivo y se lo entrega a la página (más fiable que el selector interno de una página web).
     if (puente && puente.elegirArchivoDeCupones) { puente.elegirArchivoDeCupones(); return; }
