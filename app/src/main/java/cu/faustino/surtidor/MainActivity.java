@@ -65,6 +65,8 @@ public class MainActivity extends Activity {
     // Un archivo recibido desde WhatsApp (o compartido) que se entrega a la página cuando termina de cargar.
     private String archivoPendienteNombre;
     private String archivoPendienteTexto;
+    // Si Android recrea la aplicación mientras el selector de archivos está abierto, el archivo llega ANTES de que la página termine de cargar: espera a que esté lista.
+    private boolean paginaLista = false;
 
     // La descarga de una actualización en curso.
     private long descargaId = -1;
@@ -101,6 +103,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPageFinished(WebView v, String url) {
+                paginaLista = true;
                 entregarArchivoPendiente();
             }
         });
@@ -227,7 +230,7 @@ public class MainActivity extends Activity {
     }
 
     private void entregarArchivoPendiente() {
-        if (archivoPendienteTexto == null || web == null) return;
+        if (archivoPendienteTexto == null || web == null || !paginaLista) return;
         String js = "window.recibirArchivo && window.recibirArchivo(" + JSONObject.quote(archivoPendienteNombre == null ? "archivo.json" : archivoPendienteNombre)
                 + "," + JSONObject.quote(archivoPendienteTexto) + ")";
         archivoPendienteTexto = null;

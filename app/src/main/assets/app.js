@@ -14,11 +14,13 @@
 
   /* ---------- errores visibles: nada falla en silencio ---------- */
   var ultimoError = '';
+  var traza = []; // los últimos pasos, para el diagnóstico
+  function anotar(t) { traza.push(new Date().toLocaleTimeString('es') + ' ' + t); if (traza.length > 12) traza.shift(); }
   function mostrarError(e) {
     ultimoError = String((e && e.message) || e || 'error desconocido');
     if ($('modal').hidden) confirmar('Algo falló', ultimoError + '\n\n(Se puede ver también en Ajustes → Diagnóstico.)', 'Aceptar', null, true);
   }
-  window.addEventListener('error', function (ev) { mostrarError(ev.message); });
+  window.addEventListener('error', function (ev) { anotar('error: ' + ev.message); mostrarError(ev.message); });
   window.addEventListener('unhandledrejection', function (ev) { mostrarError(ev.reason); });
 
   /* ---------- almacenamiento ---------- */
@@ -77,6 +79,7 @@
     var lotes = Object.keys(estado.lotes).sort();
     var ultimo = lotes.length ? estado.lotes[lotes[lotes.length - 1]] : null;
     $('hospital').textContent = (ultimo && ultimo.hospital) || 'Validación de cupones de combustible';
+    $('v-version').textContent = puente && puente.version ? 'Versión ' + puente.version() : '';
     var sinCanjear = cupones.filter(function (c) { return !c.canje; });
     var vigentes = sinCanjear.filter(function (c) { return hoy >= c.desde && hoy <= c.hasta; });
     var porEnviar = S.pendientes(estado).length;
@@ -106,7 +109,7 @@
   }
 
   /** Un archivo que llega desde fuera (se tocó en WhatsApp o se compartió con la aplicación): se carga igual que si se hubiera elegido. */
-  window.recibirArchivo = function (nombre, texto) { ir('inicio'); return cargarLoteTexto(texto); };
+  window.recibirArchivo = function (nombre, texto) { anotar('llegó el archivo «' + nombre + '» (' + String(texto || '').length + ' caracteres)'); ir('inicio'); return cargarLoteTexto(texto); };
 
   async function cargarLoteTexto(texto) {
     try { await cargarLoteTextoInterno(texto); } catch (e) { mostrarError(e); }
@@ -115,6 +118,7 @@
   async function cargarLoteTextoInterno(texto) {
     avisar('Leyendo el archivo… (' + String(texto || '').length + ' caracteres)');
     var r = S.verificarLote(texto, window.nacl);
+    anotar('firma del archivo: ' + (r.ok ? 'válida' : 'NO válida (' + r.error + ')'));
     if (!r.ok) { await confirmar('Archivo no válido', r.error, 'Aceptar', null, true); return; }
     if (estado.clavePublica && estado.clavePublica !== r.clave) {
       await confirmar('Archivo de otro origen', 'Este archivo no viene del hospital con el que emparejaste este teléfono (la llave no coincide). No se cargó.', 'Aceptar', null, true);
@@ -130,6 +134,7 @@
     }
     var res = S.integrarLote(estado, r.datos, new Date());
     guardar();
+    anotar('cupones integrados: ' + res.total + ' (' + res.nuevos + ' nuevos)');
     ir('inicio');
     await confirmar('Cupones cargados', res.total + ' cupón(es) del archivo ' + r.datos.lote + '\nSemana del ' + corta(r.datos.semana_inicio) + ' al ' + corta(r.datos.semana_fin) +
       '\n(' + res.nuevos + ' nuevo(s))\n\nYa puedes escanear los cupones.', 'Aceptar', null, true);
@@ -284,7 +289,7 @@
     var n = Object.keys(estado.cupones).length;
     $('a-diag').innerHTML = 'Contexto seguro: <b>' + (window.isSecureContext ? 'sí' : 'NO') + '</b> · Cifrado: <b>' + (window.crypto && window.crypto.subtle ? 'sí' : 'NO') + '</b> · Cámara: <b>' +
       (navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? 'sí' : 'NO') + '</b><br>Cupones cargados: <b>' + n + '</b> · Llave fijada: <b>' + (estado.clavePublica ? 'sí' : 'no') +
-      '</b><br>Último error: ' + esc(ultimoError || 'ninguno');
+      '</b><br>Último error: ' + esc(ultimoError || 'ninguno') + '<br>Pasos recientes:<br>' + (traza.length ? traza.map(esc).join('<br>') : 'ninguno');
   }
 
   /* ---------- actualizaciones (solo dentro de la aplicación del teléfono) ---------- */

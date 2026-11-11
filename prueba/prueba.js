@@ -146,5 +146,24 @@ async function prueba(nombre, f) {
     assert.equal(estado.cupones['COMB-2026-00008'], undefined);
   });
 
+  await prueba('el respaldo propio de SHA-256 y HMAC da lo mismo que el de Node (con y sin WebCrypto)', async () => {
+    const nodeCrypto = require('node:crypto');
+    const casos = ['', 'abc', 'x'.repeat(55), 'x'.repeat(56), 'x'.repeat(64), 'x'.repeat(65), 'Hospital Provincial Clínico Quirúrgico Faustino Pérez · ' + 'y'.repeat(1000)];
+    for (const t of casos) {
+      const esperado = nodeCrypto.createHash('sha256').update(t).digest('hex');
+      S.sinSubtle = true;
+      const propio = Buffer.from(await S.sha256(new TextEncoder().encode(t))).toString('hex');
+      assert.equal(propio, esperado, 'sha256 de «' + t.slice(0, 20) + '»');
+      const h = nodeCrypto.createHmac('sha256', 'CTA9NW6RVH').update(t).digest('hex');
+      assert.equal(Buffer.from(await S.hmacSha256(new TextEncoder().encode('CTA9NW6RVH'), new TextEncoder().encode(t))).toString('hex'), h, 'hmac de «' + t.slice(0, 20) + '»');
+    }
+    // La huella y la prueba salen iguales sin WebCrypto.
+    const huellaPropia = await S.huella(JSON.parse(texto).clave);
+    const pruebaPropia = await S.prueba('CTA9N-W6RVH', 'COMB-2026-00008', '2026-11-13T10:00:00-05:00', '2026-11-12-1');
+    S.sinSubtle = false;
+    assert.equal(huellaPropia, await S.huella(JSON.parse(texto).clave));
+    assert.equal(pruebaPropia, await S.prueba('CTA9N-W6RVH', 'COMB-2026-00008', '2026-11-13T10:00:00-05:00', '2026-11-12-1'));
+  });
+
   console.log(n + ' pruebas pasaron');
 })();
