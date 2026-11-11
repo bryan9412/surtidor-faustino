@@ -1,0 +1,25 @@
+name: Crear llave de firma (una sola vez)
+# Genera la llave de firma de la APK con la herramienta de Java (keytool), para que el firmador de Android la lea sin problemas, y la deja como un archivo descargable
+# que se borra al día siguiente. Quien mantiene el proyecto la baja, la guarda y la pone como secreto del repositorio (KS_B64 y KS_PASS).
+on: workflow_dispatch
+jobs:
+  llave:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Crear la llave
+        run: |
+          CLAVE=$(openssl rand -hex 16)
+          keytool -genkeypair -keystore llave.p12 -storetype PKCS12 -alias surtidor -keyalg RSA -keysize 2048 -validity 10950 \
+            -storepass "$CLAVE" -keypass "$CLAVE" -dname "CN=Surtidor Faustino, O=Hospital Faustino Perez, C=CU"
+          printf '%s' "$CLAVE" > clave.txt
+          base64 -w0 llave.p12 > llave.b64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: llave
+          path: |
+            llave.p12
+            llave.b64
+            clave.txt
+          retention-days: 1
