@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0D8691">
+<title>Surtidor Faustino</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header class="cab">
+  <img src="logo.png" alt="" class="logo">
+  <div class="tit"><h1>Surtidor Faustino</h1><p id="hospital">Validación de cupones de combustible</p></div>
+</header>
+
+<main>
+  <!-- Inicio -->
+  <section id="v-inicio" class="vista">
+    <div class="estado" id="estado"></div>
+    <button class="gran pri" id="b-escanear"><span class="ic">📷</span><span>Escanear cupón</span></button>
+    <button class="gran sec" id="b-teclear"><span class="ic">⌨️</span><span>Teclear folio y código</span></button>
+    <button class="gran sec" id="b-foto"><span class="ic">🖼️</span><span>Leer el QR de una foto</span></button>
+    <input type="file" id="f-foto" accept="image/*" hidden>
+    <div class="fila2">
+      <button class="medio" id="b-canjes"><span id="n-canjes">Canjes</span></button>
+      <button class="medio" id="b-cargar">Cargar cupones</button>
+    </div>
+    <input type="file" id="f-lote" accept=".json,application/json,text/plain,*/*" hidden>
+    <button class="enlace" id="b-ajustes">Ajustes</button>
+  </section>
+
+  <!-- Escáner -->
+  <section id="v-escaner" class="vista" hidden>
+    <div class="visor"><video id="video" playsinline muted></video><div class="marco"></div></div>
+    <p class="ayuda" id="ayuda-escaner">Apunta la cámara al código QR del cupón.</p>
+    <button class="gran sec" id="b-cancelar-escaner">Cancelar</button>
+  </section>
+
+  <!-- Teclear -->
+  <section id="v-teclear" class="vista" hidden>
+    <h2>Teclear el cupón</h2>
+    <label>Folio<input id="t-folio" type="text" inputmode="text" autocomplete="off" placeholder="COMB-2026-00012  ·  o solo 12" autocapitalize="characters"></label>
+    <label>Código<input id="t-codigo" type="text" autocomplete="off" placeholder="K7M2Q-9XPA3" autocapitalize="characters"></label>
+    <button class="gran pri" id="b-comprobar">Comprobar</button>
+    <button class="gran sec" id="b-cancelar-teclear">Volver</button>
+  </section>
+
+  <!-- Resultado -->
+  <section id="v-resultado" class="vista" hidden>
+    <div id="resultado"></div>
+    <button class="gran pri" id="b-entregado" hidden>✔ Ya entregué el combustible</button>
+    <button class="gran sec" id="b-siguiente">Siguiente cupón</button>
+  </section>
+
+  <!-- Canjes -->
+  <section id="v-canjes" class="vista" hidden>
+    <h2>Canjes</h2>
+    <p class="ayuda" id="resumen-canjes"></p>
+    <button class="gran pri" id="b-compartir">📤 Enviar a la Dirección</button>
+    <button class="gran sec" id="b-guardar">💾 Guardar el archivo en el teléfono</button>
+    <div id="lista-canjes"></div>
+    <button class="enlace" id="b-reenviar">Preparar de nuevo todos los canjes</button>
+    <button class="gran sec" id="b-volver-canjes">Volver</button>
+  </section>
+
+  <!-- Ajustes -->
+  <section id="v-ajustes" class="vista" hidden>
+    <h2>Ajustes</h2>
+    <label>Tu nombre (va en el archivo de canjes)<input id="a-nombre" type="text" autocomplete="off" placeholder="Nombre y apellidos"></label>
+    <div class="caja"><b>Llave del hospital</b><span id="a-huella">Todavía no has cargado ningún archivo de cupones.</span></div>
+    <div class="caja"><b>Hora del teléfono</b><span id="a-hora"></span></div>
+    <button class="gran sec" id="b-volver-ajustes">Volver</button>
+    <button class="enlace peligro" id="b-borrar">Borrar todos los datos de la aplicación</button>
+    <p class="version" id="version"></p>
+  </section>
+</main>
+
+<!-- Aviso emergente -->
+<div id="modal" class="modal" hidden><div class="tarjeta"><h3 id="m-titulo"></h3><p id="m-texto"></p><div class="acciones"><button class="sec" id="m-no"></button><button class="pri" id="m-si"></button></div></div></div>
+<div id="aviso" class="aviso" hidden></div>
+
+<script src="nacl.min.js"></script>
+<script src="jsQR.js"></script>
+<script src="nucleo.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

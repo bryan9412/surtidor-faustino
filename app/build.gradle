@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'cu.faustino.surtidor'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'cu.faustino.surtidor'
+        minSdk 24
+        targetSdk 34
+        // El número de versión sube con cada compilación para que el teléfono acepte actualizar encima sin borrar los datos.
+        versionCode (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+        versionName '1.0'
+    }
+
+    // La llave de firma vive en secretos de GitHub (no está en el repositorio). Con la misma llave, cada versión nueva se instala encima de la anterior conservando los canjes.
+    signingConfigs {
+        release {
+            storeFile file(System.getenv('KS_FILE') ?: 'no-hay-llave.p12')
+            storePassword System.getenv('KS_PASS')
+            keyAlias 'surtidor'
+            keyPassword System.getenv('KS_PASS')
+            storeType 'pkcs12'
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'androidx.core:core:1.13.1'
+}

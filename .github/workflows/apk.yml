@@ -1,0 +1,42 @@
+name: Compilar APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Primero las pruebas del núcleo (firma, QR, canjes): si fallan, no se publica ninguna APK.
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Pruebas del núcleo
+        run: node prueba/prueba.js
+
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: '8.9' }
+
+      - name: Llave de firma
+        env:
+          KS_B64: ${{ secrets.KS_B64 }}
+        run: echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/llave.p12"
+
+      - name: Compilar la APK firmada
+        env:
+          KS_FILE: ${{ runner.temp }}/llave.p12
+          KS_PASS: ${{ secrets.KS_PASS }}
+        run: gradle assembleRelease --no-daemon
+
+      - name: Publicar la descarga
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk Surtidor-Faustino.apk
+          gh release delete apk --yes --cleanup-tag || true
+          gh release create apk Surtidor-Faustino.apk --title "Surtidor Faustino (APK)" --notes "Descarga Surtidor-Faustino.apk desde el teléfono del expendedor e instálala (Android 7 o superior). Versión ${{ github.run_number }}."
