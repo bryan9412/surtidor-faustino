@@ -164,7 +164,7 @@
         '<div><span class="k">Combustible</span><span class="v">' + esc(c.tipo) + '</span></div>' +
         '<div><span class="k">Litros</span><span class="v" style="font-size:30px">' + litros(c.litros) + ' L</span></div>' +
         '<div><span class="k">Folio</span><span class="v" style="font-size:15px">' + esc(c.folio) + '</span></div>' +
-        (c.dias && c.dias !== '—' ? '<div class="ancho"><span class="k">Días de abastecimiento</span><span class="v" style="font-size:16px">' + esc(c.dias) + '</span></div>' : '') + '</div>';
+        (c.dias && c.dias !== '—' ? '<div class="ancho"><span class="k">Días de transporte</span><span class="v" style="font-size:16px">' + esc(c.dias) + '</span></div>' : '') + '</div>';
     }
     $('resultado').innerHTML = h + '</div>';
     $('b-entregado').hidden = ev.resultado !== 'valido';
